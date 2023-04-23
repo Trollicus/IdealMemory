@@ -1,4 +1,4 @@
-﻿namespace Client.Handlers.Models;
+namespace Client.Handlers.Models;
 
 public class UserDtOs
 {
@@ -29,4 +29,15 @@ public class UserDtOs
         public string? Username { get; init; }
         public string? SuccessMessage { get; init; }
     }
+    
+    public class LogoutRequest
+    {
+        public Guid SessionId { get; init; }
+    }
+
+    public class LogoutResponse
+    {
+        public string? SuccessMessage { get; init; }
+    }
+
 }
