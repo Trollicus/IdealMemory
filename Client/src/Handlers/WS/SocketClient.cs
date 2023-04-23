@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using Client.Extensions;
@@ -30,6 +30,8 @@ public class SocketClient
 
     private readonly IPEndPoint _endPoint = new(IPAddress.Loopback, 1337);
 
+    private static Guid _sessionId = Guid.Empty;
+    
     public async Task ConnectAsync()
     {
         await Socket.ConnectAsync(_endPoint);
@@ -72,7 +74,10 @@ public class SocketClient
                 UsernameOrEmail = "bigtonkat",
                 Password = "123456789"
             })),
-            "logout" => new OpCodes.WsMessage(OpCodes.WsOpCodes.Logout, Guid.NewGuid(), string.Empty),
+            "logout" => new OpCodes.WsMessage(OpCodes.WsOpCodes.Logout, Guid.Empty, JsonSerializer.Serialize(new UserDtOs.LogoutRequest
+            {
+                SessionId = _sessionId
+            })),
             _ => null
         };
     }
@@ -91,7 +96,8 @@ public class SocketClient
             var output = receivedMessage.OpCode switch
             {
                 OpCodes.WsOpCodes.Register => JsonSerializer.Deserialize<UserDtOs.RegisterResponse>(receivedMessage.Payload)?.SuccessMessage,
-                OpCodes.WsOpCodes.Login => JsonSerializer.Deserialize<UserDtOs.LoginResponse>(receivedMessage.Payload)?.SuccessMessage,
+                OpCodes.WsOpCodes.Login => HandleLoginResponse(receivedMessage.Payload),
+                OpCodes.WsOpCodes.Logout => JsonSerializer.Deserialize<UserDtOs.LogoutResponse>(receivedMessage.Payload)?.SuccessMessage,
                 _ => $"Unhandled OpCode: {receivedMessage.OpCode}"
             };
 
@@ -99,6 +105,18 @@ public class SocketClient
         }
     }
 
+    private static string? HandleLoginResponse(string payload)
+    {
+        var loginResponse = JsonSerializer.Deserialize<UserDtOs.LoginResponse>(payload);
+        if (loginResponse != null)
+        {
+            _sessionId = loginResponse.SessionId;
+            return loginResponse.SuccessMessage;
+        }
+
+        return "Failed to deserialize login response.";
+    }
+    
     private static Task SendMessageAsync(Socket socket, OpCodes.WsMessage message) =>
         socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(message), SocketFlags.None);
 
