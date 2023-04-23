@@ -1,10 +1,11 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Server.Extensions;
 using Server.Handlers.Logger;
 using Server.Handlers.DataBase.Configuration;
 using Server.Handlers.DataBase.Services;
@@ -38,7 +39,7 @@ public class SocketServer
         DatabaseConfiguration.ConfigureServices(services);
         _serviceProvider = services.BuildServiceProvider();
     }
-    
+
     public async Task StartAsync()
     {
         Socket.Bind(_endPoint);
@@ -77,6 +78,8 @@ public class SocketServer
             using var scope = _serviceProvider.CreateScope();
             var userService = scope.ServiceProvider.GetRequiredService<UserServices>();
             
+            _ = WhoseOnline(userService, CancellationTokenSource);
+            
             var opCodeHandler = new OpCodeHandler(userService);
             await opCodeHandler.HandleOpCodeAsync(socket, message);
 
@@ -85,5 +88,23 @@ public class SocketServer
 
         socket.Close();
         socket.Dispose();
+    }
+
+    private async Task WhoseOnline(UserServices userServices,CancellationTokenSource cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var loggedInUsers = userServices.GetLoggedInUsers();
+            
+            await 60;
+            
+            Console.WriteLine($"Online Users ({loggedInUsers.Count}):");
+
+            foreach (var user in loggedInUsers)
+            {
+                Console.WriteLine($"Username: {user.Value}, SessionId: {user.Key}");
+            }
+            
+        }
     }
 }
