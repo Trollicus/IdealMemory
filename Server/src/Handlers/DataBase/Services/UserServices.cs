@@ -1,6 +1,9 @@
-﻿using System.Net.Sockets;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Server.Extensions;
 using Server.Handlers.DataBase.Data;
 using Server.Handlers.DataBase.Models;
 using Server.Handlers.WS;
@@ -44,7 +47,9 @@ public class UserServices
             _dbContext.SaveChanges();
         }
     }
-    
+
+    private readonly ConcurrentDictionary<Guid, string?> _loggedInUsers = new();
+
     public async Task<UserDtOs.RegisterResponse> Register(string? email, string? username, string? password)
     {
         var existingUser = await _dbContext.Users
@@ -99,7 +104,14 @@ public class UserServices
         user.SessionId = Guid.NewGuid();
         _dbContext.Users.Update(user);
         await _dbContext.SaveChangesAsync();
-        
+
+        _loggedInUsers.TryAdd(user.SessionId, user.Username);
+
+        foreach (var userr in _loggedInUsers)
+        {
+            Console.WriteLine($"{userr.Value} : {userr.Key}");
+        }
+
         return new UserDtOs.LoginResponse
         {
             UserId = user.Id,
@@ -108,7 +120,31 @@ public class UserServices
             SuccessMessage = $"Login successful. UserId: {user.Id}, SessionId: {user.SessionId}"
         };
     }
-    
+
+    public async Task<UserDtOs.LogoutResponse> Logout(Guid sessionId)
+    {
+        if (_loggedInUsers.TryRemove(sessionId, out var username))
+        {
+            return new UserDtOs.LogoutResponse
+            {
+                SuccessMessage = $"Successfully Logged out"
+            };
+        }
+        
+        await 1;
+        
+        return new UserDtOs.LogoutResponse
+        {
+            SuccessMessage = "Invalid task!"
+        };
+    }
+
+    public IReadOnlyDictionary<Guid, string> GetLoggedInUsers()
+    {
+        return new ReadOnlyDictionary<Guid, string>(_loggedInUsers);
+    }
+
+
     private string HashPassword(string? password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
