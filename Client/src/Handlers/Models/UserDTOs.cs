@@ -33,6 +33,8 @@ public class UserDtOs
     public class LogoutRequest
     {
         public Guid SessionId { get; init; }
+        
+        public string? Username { get; init; }
     }
 
     public class LogoutResponse

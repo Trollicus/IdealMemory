@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Server.Extensions;
 using Server.Handlers.DataBase.Models;
 using Server.Handlers.DataBase.Services;
 
@@ -22,8 +23,6 @@ public class OpCodeHandler
         OpCodes.WsOpCodes opCode = message.OpCode;
         string payload = message.Payload;
         
-        Console.WriteLine(message.Payload);
-
         switch (opCode)
         {
             case OpCodes.WsOpCodes.Register:
@@ -33,11 +32,9 @@ public class OpCodeHandler
                 await HandleLoginAsync(socket, payload);
                 break;
             case OpCodes.WsOpCodes.Logout:
-                // await HandleLogoutAsync(socket, sessionId, payload);
-                Console.WriteLine(3);
+                await HandleLogoutAsync(socket, payload);
                 break;
             default:
-                // Handle unknown OpCode
                 Console.WriteLine(69);
                 break;
         }
@@ -58,7 +55,16 @@ public class OpCodeHandler
 
         await SendResponseAsync(socket, OpCodes.WsOpCodes.Login, JsonSerializer.Serialize(loginResponse));
     }
+
+    private async Task HandleLogoutAsync(Socket socket, string? payload)
+    {
+        var logoutRequest = JsonSerializer.Deserialize<UserDtOs.LogoutRequest>(payload);
+        Console.WriteLine($"HandleLogOutAsync: {logoutRequest.SessionId}, Username: {logoutRequest.Username}");
+        var logoutResponse = await _userService.Logout(logoutRequest.SessionId, logoutRequest.Username);
         
+        await SendResponseAsync(socket, OpCodes.WsOpCodes.Logout, JsonSerializer.Serialize(logoutResponse));
+    }
+    
     private byte[] GetMessageBytes(OpCodes.WsMessage message)
     {
         string jsonString = JsonSerializer.Serialize(message);

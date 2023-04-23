@@ -31,6 +31,8 @@ public class SocketClient
     private readonly IPEndPoint _endPoint = new(IPAddress.Loopback, 1337);
 
     private static Guid _sessionId = Guid.Empty;
+
+    private static string? _username = "";
     
     public async Task ConnectAsync()
     {
@@ -76,7 +78,8 @@ public class SocketClient
             })),
             "logout" => new OpCodes.WsMessage(OpCodes.WsOpCodes.Logout, Guid.Empty, JsonSerializer.Serialize(new UserDtOs.LogoutRequest
             {
-                SessionId = _sessionId
+                SessionId = _sessionId,
+                Username = _username
             })),
             _ => null
         };
@@ -87,7 +90,7 @@ public class SocketClient
     {
         byte[] buffer = new byte[512];
         int bytesRead = await socket.ReceiveAsync(buffer, SocketFlags.None);
-
+        
         if (bytesRead > 0)
         {
             OpCodes.WsMessage? receivedMessage =
@@ -111,6 +114,8 @@ public class SocketClient
         if (loginResponse != null)
         {
             _sessionId = loginResponse.SessionId;
+            _username = loginResponse.Username;
+            
             return loginResponse.SuccessMessage;
         }
 

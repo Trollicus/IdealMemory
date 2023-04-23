@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\yorda\\RiderProjects\\IdealMemory\\Server\\Server.csproj": {}
+    "C:\\Users\\yorda\\Documents\\GitHub\\IdealMemory\\Server\\Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\yorda\\RiderProjects\\IdealMemory\\Server\\Server.csproj": {
+    "C:\\Users\\yorda\\Documents\\GitHub\\IdealMemory\\Server\\Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\yorda\\RiderProjects\\IdealMemory\\Server\\Server.csproj",
+        "projectUniqueName": "C:\\Users\\yorda\\Documents\\GitHub\\IdealMemory\\Server\\Server.csproj",
         "projectName": "Server",
-        "projectPath": "C:\\Users\\yorda\\RiderProjects\\IdealMemory\\Server\\Server.csproj",
+        "projectPath": "C:\\Users\\yorda\\Documents\\GitHub\\IdealMemory\\Server\\Server.csproj",
         "packagesPath": "C:\\Users\\yorda\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\yorda\\RiderProjects\\IdealMemory\\Server\\obj\\",
+        "outputPath": "C:\\Users\\yorda\\Documents\\GitHub\\IdealMemory\\Server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\yorda\\AppData\\Roaming\\NuGet\\NuGet.Config"

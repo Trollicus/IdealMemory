@@ -1,9 +1,6 @@
-using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Server.Extensions;
 using Server.Handlers.DataBase.Data;
 using Server.Handlers.DataBase.Models;
 using Server.Handlers.WS;
@@ -48,7 +45,7 @@ public class UserServices
         }
     }
 
-    private readonly ConcurrentDictionary<Guid, string?> _loggedInUsers = new();
+    private Dictionary<Guid, string> _loggedInUsers = new();
 
     public async Task<UserDtOs.RegisterResponse> Register(string? email, string? username, string? password)
     {
@@ -106,12 +103,7 @@ public class UserServices
         await _dbContext.SaveChangesAsync();
 
         _loggedInUsers.TryAdd(user.SessionId, user.Username);
-
-        foreach (var userr in _loggedInUsers)
-        {
-            Console.WriteLine($"{userr.Value} : {userr.Key}");
-        }
-
+        
         return new UserDtOs.LoginResponse
         {
             UserId = user.Id,
@@ -121,27 +113,19 @@ public class UserServices
         };
     }
 
-    public async Task<UserDtOs.LogoutResponse> Logout(Guid sessionId)
+    public async Task<UserDtOs.LogoutResponse> Logout(Guid sessionId, string? Username)
     {
-        if (_loggedInUsers.TryRemove(sessionId, out var username))
-        {
-            return new UserDtOs.LogoutResponse
-            {
-                SuccessMessage = $"Successfully Logged out"
-            };
-        }
-        
-        await 1;
+        _loggedInUsers.Remove(sessionId);
         
         return new UserDtOs.LogoutResponse
         {
-            SuccessMessage = "Invalid task!"
+            SuccessMessage = $"Successfully Logged out! {Username} : {sessionId}"
         };
     }
-
-    public IReadOnlyDictionary<Guid, string> GetLoggedInUsers()
+    
+    public Dictionary<Guid, string> GetLoggedInUsers()
     {
-        return new ReadOnlyDictionary<Guid, string>(_loggedInUsers);
+        return _loggedInUsers;
     }
 
 

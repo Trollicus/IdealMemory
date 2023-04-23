@@ -33,11 +33,12 @@ public class UserDtOs
     public record LogoutRequest
     {
         public Guid SessionId { get; init; }
+        
+        public string? Username { get; init; }
     }
 
     public record LogoutResponse
     {
         public string? SuccessMessage { get; init; }
     }
-
 }
